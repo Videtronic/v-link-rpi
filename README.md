@@ -103,7 +103,7 @@ Available overlays include (but are not limited to):
    ```
 2. Add the overlay to your `config.txt`:
    ```bash
-   sudo nano /boot/config.txt
+   sudo nano /boot/firmware/config.txt
    ```
    Add the following line to enable the overlay:
    ```
@@ -153,7 +153,7 @@ sudo reboot
   ```  
 
 - **Q: Overlay does not load properly**  
-  A: Verify that the overlay file is in `/boot/firmware/overlays` and is referenced in `/boot/config.txt`.
+  A: Verify that the overlay file is in `/boot/firmware/overlays` and is referenced in `/boot/firmware/config.txt`.
 
 
 ## Contribution Guidelines

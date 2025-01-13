@@ -64,20 +64,29 @@ Clone the repository branch matching your kernel version. For the **rpi-6.6.y** 
 git clone --branch rpi-6.6.y https://github.com/Videtronic/v-link-rpi.git
 cd v-link-rpi
 ```
+### Step 3: Enter driver directory
+```bash
+cd v-link-ser
+```
+or
+```bash
+cd v-link-deser
+```
 
-### Step 3: Build the Drivers (repeat process for serializer and deserializer)
+### Step 4: Build the Drivers 
 Use the provided `Makefile` to build the drivers:
 ```bash
 make
 ```
 
-### Step 4: Install the Drivers
+### Step 5: Install the Drivers 
 Install the drivers using:
 ```bash
 sudo make install
 ```
+**Repeat step 4 and 5 for v-link-deser**  
 
-### Step 5: Configure the Device Tree Overlay
+### Step 6: Configure the Device Tree Overlay
 1. Copy the desired overlay file(s) to the `/boot/firmware/overlays` directory.  
 Available overlays include (but are not limited to):
    * ```vlink-imx219.dtbo``` (for Raspberry Pi Camera Module 2)
@@ -108,7 +117,14 @@ Available overlays include (but are not limited to):
    ```bash
    camera_auto_detect=0
    ```
-### Step 6: Reboot
+
+**For quick test, one can load an overlay directly from overlays directory:**
+```bash
+cd overlays
+sudo dtoverlay vlink-imx219.dtbo
+```
+
+### Step 7: Reboot
 Reboot your Raspberry Pi for the changes to take effect:
 ```bash
 sudo reboot
@@ -153,4 +169,3 @@ If you encounter issues or have any questions, feel free to [contact us](https:/
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)  
 ![Raspberry Pi](https://img.shields.io/badge/RaspberryPi-4%2C5%2CZero2-blue)
-

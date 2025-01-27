@@ -9,7 +9,7 @@ At Videtronic, we design and manufacture various embedded vision products. Our g
 
 Experience our comprehensive range of services, from advanced embedded vision products to full-scale production. We deliver tailored solutions and reliable support to meet all your vision technology needs.
 
-Visit us at https://www.videtronic.com
+Visit us at https://videtronic.com/
 
 ## Features
 - **Serializer**: Based on MAX96717

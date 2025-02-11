@@ -1,0 +1,248 @@
+// SPDX-License-Identifier: GPL-2.0-only
+// Definitions for IMX500 camera module over v-link
+/dts-v1/;
+/plugin/;
+
+/{
+	compatible = "brcm,bcm2712";
+	
+	fragment@0 {
+		target = <&i2c0if>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+	
+	fragment@1 {
+		target = <&i2c0mux>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+	
+	reg_frag: fragment@2 {
+		target = <&cam1_reg>;
+		cam_reg: __overlay__ {
+			startup-delay-us = <300000>;
+		};
+	};
+	
+	i2c_frag: fragment@100 {
+		target = <&i2c_csi_dsi>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+			
+			deserializer: deserializer@4C {
+				status = "okay";
+				compatible = "videtronic,v-link-deser";
+				reg = <0x4C>;
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					
+					port@0 {
+						reg = <0>;
+						deserialiezr_gmsl_in: endpoint {
+							remote-endpoint = <&serializer_gmsl_out>;
+						};
+					};
+					
+					port@1 {
+						reg = <1>;
+						deserializer_csi_out: endpoint {
+							data-lanes = <1 2>;
+							link-frequencies = /bits/ 64 <500000000>;
+							remote-endpoint = <&csi_ep>;
+						};
+					};
+				};
+				
+				i2c-gate {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					status = "okay";
+					serializer: serializer@42 {
+						status = "okay";
+						compatible = "videtronic,v-link-ser";
+						reg = <0x42>;
+						gpio-controller;
+						#gpio-cells = <2>;
+						#clock-cells = <0>;
+						
+						ports {
+							#address-cells = <1>;
+							#size-cells = <0>;
+							
+							port@0 {
+								reg = <0>;
+								serializer_csi_in: endpoint {
+									data-lanes = <1 2>;
+									remote-endpoint = <&cam_endpoint>;
+								};
+							};
+							
+							port@1 {
+								reg = <1>;
+								serializer_gmsl_out: endpoint {
+									remote-endpoint = <&deserialiezr_gmsl_in>;
+								};
+							};
+						};
+						
+						i2c-gate {
+							#address-cells = <1>;
+							#size-cells = <0>;
+							status = "okay";
+							
+							spi_bridge: spi@40 {
+								reg = <0x40>;
+								compatible = "raspberrypi,rp2040-gpio-bridge";
+								status = "okay";
+								#address-cells = <1>;
+								#size-cells = <0>;
+								
+								power-supply = <&bridge_en>;
+								
+								#gpio-cells = <2>;
+								gpio-controller;
+								
+								spi_bridgedev0: spidev@0{
+									compatible = "spidev";
+									reg = <0>;	/* CE0 */
+									#address-cells = <1>;
+									#size-cells = <0>;
+									spi-max-frequency = <35000000>;
+								};
+							};
+							
+							cam_node: imx500@1a {
+								reg = <0x1a>;
+								compatible = "sony,imx500";
+								status = "okay";
+								
+								clocks = <&clk_aicam_gated>;
+								clock-names = "inck";
+								
+								vana-supply = <&cam1_reg>;	/* 2.7v */
+								vdig-supply = <&cam_dummy_reg>;	/* 0.84v */
+								vif-supply = <&cam_dummy_reg>;	/* 1.8v */
+								
+								rotation = <0>;
+								orientation = <2>;
+								
+								led-gpios = <&spi_bridge 19 0>;
+								reset-gpios = <&spi_bridge 20 0>;
+								spi = <&spi_bridgedev0>;
+								
+								port {
+									cam_endpoint: endpoint {
+										clock-lanes = <0>;
+										data-lanes = <1 2>;
+										clock-noncontinuous;
+										link-frequencies =
+										/bits/ 64 <444000000>;
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+	
+	csi_frag: fragment@101 {
+		target = <&csi1>;
+		csi: __overlay__ {
+			status = "okay";
+			brcm,media-controller;
+			
+			port {
+				csi_ep: endpoint {
+					remote-endpoint = <&deserializer_csi_out>;
+					clock-lanes = <0>;
+					data-lanes = <1 2>;
+					clock-noncontinuous;
+				};
+			};
+		};
+	};
+	
+	spi_frag: fragment@102 {
+		target = <&spi_bridge>;
+		spi_frag_overlay: __overlay__ {
+			fast_xfer_requires_i2c_lock = <1>;
+			fast_xfer_recv_gpio_base = <11>;
+			fast_xfer-gpios = <&rp1_gpio 40 0>,// CD1_SDA (used as data)
+			<&rp1_gpio 48 0>;// CD1_IO1_MICDAT1 (clock)
+		};
+	};
+	
+	spi_bridge_frag: fragment@103 {
+		target = <&spi_bridgedev0>;
+		__overlay__ {
+			compatible = "sony,imx500";
+		};
+	};
+	
+	fragment@104 {
+		target-path = "/clocks";
+		__overlay__ {
+			clk_aicam: clk-aicam1 {
+				compatible = "fixed-clock";
+				#clock-cells = <0>;
+				clock-frequency = <24000000>;
+			};
+			
+			clk_aicam_gated: clk-aicam-gated1 {
+				compatible = "gpio-gate-clock";
+				clocks = <&clk_aicam>;
+				#clock-cells = <0>;
+				enable-gpios = <&spi_bridge 21 0>;
+			};
+		};
+	};
+	
+	fragment@105 {
+		target-path = "/";
+		__overlay__ {
+			bridge_en: bridge_en {
+				compatible = "regulator-fixed";
+				regulator-name = "bridge_en";
+				gpio = <&serializer 0 1>;
+				enable-active-high;
+				startup-delay-us = <500000>;
+			};
+		};
+	};
+	
+	__overrides__ {
+		rotation = <&cam_node>,"rotation:0";
+		orientation = <&cam_node>,"orientation:0";
+		media-controller = <&csi>,"brcm,media-controller?";
+		cam0 = <&i2c_frag>, "target:0=",<&i2c_csi_dsi0>,
+		<&csi_frag>, "target:0=",<&csi0>,
+		<&spi_frag_overlay>, "fast_xfer-gpios:4=38",// CD0_SDA (data)
+		<&spi_frag_overlay>, "fast_xfer-gpios:16=35",// CD0_IO1_MICDAT0 (clock)
+		<&spi_bridge>, "power-supply:0=",<&bridge_en>,//cam0_reg
+		<&reg_frag>, "target:0=",<&cam0_reg>,
+		<&cam_node>, "VANA-supply:0=",<&cam0_reg>,
+		<&clk_aicam>,"name=clk-aicam0",
+		<&clk_aicam_gated>,"name=clk-aicam-gated0";
+		bypass-cache = <&spi_bridge>,"bypass-cache?";
+	};
+};
+
+&cam_node {
+	status = "okay";
+};
+
+&spi_bridge {
+	status = "okay";
+};
+
+&cam_endpoint {
+	remote-endpoint = <&serializer_csi_in>;
+};

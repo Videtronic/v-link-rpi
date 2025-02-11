@@ -1,3 +1,5 @@
+## NOTE - drivers will be release upon product launch which is scheduled for April 2025.
+
 # Videtronic V-Link Drivers
 
 Welcome to the official Videtronic repository for the **v-link** drivers!  
@@ -101,6 +103,8 @@ Available overlays include (but are not limited to):
    ```bash
    sudo cp overlays/vlink-*.dtbo /boot/firmware/overlays/
    ```
+
+   ### Overlays with suffix *_4lane are compatible with Raspberry Pi 5 only. These overlays configure deserializer to utilize 4 mipi-csi lanes for better resource utilization.
 2. Add the overlay to your `config.txt`:
    ```bash
    sudo nano /boot/firmware/config.txt

@@ -1,11 +1,10 @@
-## NOTE - drivers will be release upon product launch which is scheduled for April 2025.
-
 # Videtronic V-Link Drivers
 
 Welcome to the official Videtronic repository for the **v-link** drivers!  
 
 The **v-link** product line integrates advanced serializer and deserializer technology featuring the **MAX96717** and **MAX96714** to deliver seamless and high-performance video data transmission over distances of up to 15 meters, thanks to the extended range capabilities of **GMSL2**.
 
+For Nvidia Jetson support visit our **v-link-l4t** repository: [here](https://github.com/Videtronic/v-link-l4t)
 ## About Videtronic
 At Videtronic, we design and manufacture various embedded vision products. Our goal is to create solutions that will be used in cutting-edge vision projects.
 

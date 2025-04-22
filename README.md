@@ -25,7 +25,7 @@ Visit us at https://videtronic.com/
 - Reliable performance for video data transmission
 
 ## Versioning
-This repository is versioned based on the Raspberry Pi Linux kernel LTS branches. Each branch corresponds to a specific kernel version (e.g., `rpi-6.6.y`). Ensure you use the branch matching your kernel version for optimal compatibility.
+This repository is versioned based on the Raspberry Pi Linux kernel LTS branches. Each branch corresponds to a specific kernel version (e.g., `rpi-6.12.y`). Ensure you use the branch matching your kernel version for optimal compatibility.
 
 You can find the official Raspberry Pi Linux LTS branches [here](https://github.com/raspberrypi/linux).
 
@@ -55,14 +55,14 @@ uname -r
 ```
 For example, a Raspberry Pi 5 might return:
 ```
-6.6.62+rpt-rpi-2712
+6.12.20+rpt-rpi-2712
 ```
-This indicates you are using the **6.6.y** kernel branch.
+This indicates you are using the **6.12.y** kernel branch.
 
 ### Step 2: Clone the Appropriate Branch
-Clone the repository branch matching your kernel version. For the **rpi-6.6.y** kernel branch:
+Clone the repository branch matching your kernel version. For the **rpi-6.12.y** kernel branch:
 ```bash
-git clone --branch rpi-6.6.y https://github.com/Videtronic/v-link-rpi.git
+git clone --branch rpi-6.12.y https://github.com/Videtronic/v-link-rpi.git
 cd v-link-rpi
 ```
 ### Step 3: Enter driver directory

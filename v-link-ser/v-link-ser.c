@@ -26,6 +26,9 @@
 #include <media/v4l2-fwnode.h>
 #include <media/v4l2-subdev.h>
 
+#undef dev_dbg
+#define dev_dbg dev_info
+
 #define MAX96717_NUM_GPIO 1
 #define MAX96717_GPIO_REG_A(gpio) CCI_REG8(0x2be + (gpio)*3)
 #define MAX96717_GPIO_OUT BIT(4)
@@ -100,7 +103,7 @@ static int v_link_ser_i2c_mux_init(struct v_link_ser_priv *priv)
 	if (!priv->mux)
 		return -ENOMEM;
 
-	return i2c_mux_add_adapter(priv->mux, 0, 0, 0);
+	return i2c_mux_add_adapter(priv->mux, 0, 0);
 }
 
 static int v_link_ser_notify_bound(struct v4l2_async_notifier *notifier,
@@ -244,8 +247,8 @@ static int v_link_ser_s_stream(struct v4l2_subdev *sd, int enable)
 }
 
 /*
-	Returns a pad number to which this device 'pad' is connected to.
-*/
+	 Returns a pad number to which this device 'pad' is connected to.
+ */
 static int v_link_ser_get_connected_pad(struct v_link_ser_priv *priv, int pad)
 {
 	struct device *dev = &priv->client->dev;
@@ -280,37 +283,6 @@ static int v_link_ser_get_connected_pad(struct v_link_ser_priv *priv, int pad)
 	}
 
 	return opposite_pad;
-}
-
-static int v_link_ser_init_cfg(struct v4l2_subdev *sd,
-			       struct v4l2_subdev_state *state)
-{
-	struct v_link_ser_priv *priv = sd_to_v_link_ser(sd);
-	struct v4l2_mbus_framefmt *format;
-	struct device *dev = &priv->client->dev;
-
-	dev_dbg(dev, "Init cfg");
-
-	/* Initialize the format. */
-	format = v4l2_subdev_get_pad_format(sd, state, 0);
-	format->width = 640, format->height = 480;
-	format->code = MEDIA_BUS_FMT_SRGGB10_1X10;
-	format->field = V4L2_FIELD_NONE;
-	format->colorspace = V4L2_COLORSPACE_RAW;
-	format->ycbcr_enc = V4L2_YCBCR_ENC_601;
-	format->quantization = V4L2_QUANTIZATION_FULL_RANGE;
-	format->xfer_func = V4L2_XFER_FUNC_NONE;
-
-	/* Initialize embedded metadata pad */
-	if (priv->metadata_pad) {
-		format = v4l2_subdev_get_pad_format(sd, state, 1);
-		format->code = MEDIA_BUS_FMT_SENSOR_DATA;
-		format->width = 16384;
-		format->height = 1;
-		format->field = V4L2_FIELD_NONE;
-	}
-
-	return 0;
 }
 
 static int v_link_ser_set_fmt(struct v4l2_subdev *sd,
@@ -365,7 +337,6 @@ static const struct v4l2_subdev_video_ops v_link_ser_video_ops = {
 };
 
 static const struct v4l2_subdev_pad_ops v_link_ser_pad_ops = {
-	.init_cfg = v_link_ser_init_cfg,
 	.get_fmt = v_link_ser_get_fmt,
 	.set_fmt = v_link_ser_set_fmt,
 };
@@ -501,7 +472,7 @@ static int v_link_ser_setup(struct v_link_ser_priv *priv)
 	val = 0x03;
 	cci_update_bits(priv->regmap, MAX96717_MIPI_RX4,
 			MAX96717_PHY1_LANES_POL,
-			FIELD_PREP(MAX96717_PHY1_LANES_POL, val >> 3), &ret);
+			FIELD_PREP(MAX96717_PHY1_LANES_POL, val), &ret);
 
 	/* lanes mapping */
 	for (lane = 0, val = 0; lane < nlanes; lane++) {
@@ -510,9 +481,9 @@ static int v_link_ser_setup(struct v_link_ser_priv *priv)
 	}
 
 	/*
-	 * Unused lanes need to be mapped as well to not have
-	 * the same lanes mapped twice.
-	 */
+		* Unused lanes need to be mapped as well to not have
+		* the same lanes mapped twice.
+		*/
 	for (; lane < MAX96717_CSI_NLANES; lane++) {
 		unsigned int idx =
 			find_first_zero_bit(&lanes_used, MAX96717_CSI_NLANES);
@@ -728,13 +699,13 @@ static const struct of_device_id v_link_ser_dt_ids[] = {
 MODULE_DEVICE_TABLE(of, v_link_ser_dt_ids);
 
 static struct i2c_driver v_link_ser_i2c_driver = {
-	.driver	= {
-		.name		= "v-link-ser",
-		.of_match_table	= v_link_ser_dt_ids,
-	},
-	.probe		= v_link_ser_probe,
-	.remove		= v_link_ser_remove,
-};
+	 .driver	= {
+		 .name		= "v-link-ser",
+		 .of_match_table	= v_link_ser_dt_ids,
+	 },
+	 .probe		= v_link_ser_probe,
+	 .remove		= v_link_ser_remove,
+ };
 
 module_i2c_driver(v_link_ser_i2c_driver);
 

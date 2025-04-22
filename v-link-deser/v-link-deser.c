@@ -23,6 +23,9 @@
 #include <media/v4l2-fwnode.h>
 #include <media/v4l2-subdev.h>
 
+#undef dev_dbg
+#define dev_dbg dev_info
+
 #define MAX96714_MIPI_STDBY_N CCI_REG8(0x332)
 #define MAX96714_MIPI_STDBY_MASK GENMASK(5, 4)
 #define MAX96714_BACKTOP25 CCI_REG8(0x320)
@@ -89,7 +92,7 @@ static int v_link_deser_i2c_mux_init(struct v_link_deser_priv *priv)
 	if (!priv->mux)
 		return -ENOMEM;
 
-	return i2c_mux_add_adapter(priv->mux, 0, 0, 0);
+	return i2c_mux_add_adapter(priv->mux, 0, 0);
 }
 
 static int v_link_deser_notify_bound(struct v4l2_async_notifier *notifier,
@@ -271,37 +274,6 @@ static int v_link_deser_get_connected_pad(struct v_link_deser_priv *priv,
 	return opposite_pad;
 }
 
-static int v_link_deser_init_cfg(struct v4l2_subdev *sd,
-				 struct v4l2_subdev_state *state)
-{
-	struct v_link_deser_priv *priv = sd_to_v_link_deser(sd);
-	struct device *dev = &priv->client->dev;
-	struct v4l2_mbus_framefmt *format;
-
-	dev_dbg(dev, "Init cfg");
-
-	/* Initialize the format. */
-	format = v4l2_subdev_get_pad_format(sd, state, 0);
-	format->width = 640, format->height = 480;
-	format->code = MEDIA_BUS_FMT_SRGGB10_1X10;
-	format->field = V4L2_FIELD_NONE;
-	format->colorspace = V4L2_COLORSPACE_RAW;
-	format->ycbcr_enc = V4L2_YCBCR_ENC_601;
-	format->quantization = V4L2_QUANTIZATION_FULL_RANGE;
-	format->xfer_func = V4L2_XFER_FUNC_NONE;
-
-	/* Initialize embedded metadata pad */
-	if (priv->metadata_pad) {
-		format = v4l2_subdev_get_pad_format(sd, state, 1);
-		format->code = MEDIA_BUS_FMT_SENSOR_DATA;
-		format->width = 16384;
-		format->height = 1;
-		format->field = V4L2_FIELD_NONE;
-	}
-
-	return 0;
-}
-
 static int v_link_deser_set_fmt(struct v4l2_subdev *sd,
 				struct v4l2_subdev_state *sd_state,
 				struct v4l2_subdev_format *format)
@@ -332,6 +304,7 @@ static int v_link_deser_get_fmt(struct v4l2_subdev *sd,
 	if (subdev_pad < 0) {
 		dev_warn(dev, "Unable to determine subdevice connection");
 		return v4l2_subdev_get_fmt(sd, sd_state, format);
+		//return -EINVAL;
 	}
 
 	ret = v4l2_subdev_call(priv->source.sd, pad, get_fmt,
@@ -348,7 +321,6 @@ static const struct v4l2_subdev_video_ops v_link_deser_video_ops = {
 };
 
 static const struct v4l2_subdev_pad_ops v_link_deser_pad_ops = {
-	.init_cfg = v_link_deser_init_cfg,
 	.get_fmt = v_link_deser_get_fmt,
 	.set_fmt = v_link_deser_set_fmt,
 };
@@ -384,7 +356,7 @@ static int v_link_deser_setup(struct v_link_deser_priv *priv)
 			MAX96714_CSI2_LANE_CNT_MASK, val, &ret);
 
 	/* Fixed values for this register based on HW design */
-	val = 0x3b;//0x23;
+	val = 0x3b; //0x23;
 	cci_write(priv->regmap, MAX96714_MIPI_POLARITY, val, &ret);
 
 	/* lanes mapping */
@@ -443,8 +415,7 @@ static int v_link_deser_create_subdev(struct v_link_deser_priv *priv)
 
 	num_pads = (priv->metadata_pad) ? V_LINK_DESER_N_PADS :
 					  V_LINK_DESER_N_PADS - 2;
-	ret = media_entity_pads_init(&priv->sd.entity, num_pads,
-				     priv->pads);
+	ret = media_entity_pads_init(&priv->sd.entity, num_pads, priv->pads);
 	if (ret) {
 		dev_err(dev, "Media pads init failed");
 		goto err_free_ctrl;

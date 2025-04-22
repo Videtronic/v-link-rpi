@@ -23,9 +23,6 @@
 #include <media/v4l2-fwnode.h>
 #include <media/v4l2-subdev.h>
 
-#undef dev_dbg
-#define dev_dbg dev_info
-
 #define MAX96714_MIPI_STDBY_N CCI_REG8(0x332)
 #define MAX96714_MIPI_STDBY_MASK GENMASK(5, 4)
 #define MAX96714_BACKTOP25 CCI_REG8(0x320)

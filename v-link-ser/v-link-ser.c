@@ -26,9 +26,6 @@
 #include <media/v4l2-fwnode.h>
 #include <media/v4l2-subdev.h>
 
-#undef dev_dbg
-#define dev_dbg dev_info
-
 #define MAX96717_NUM_GPIO 1
 #define MAX96717_GPIO_REG_A(gpio) CCI_REG8(0x2be + (gpio)*3)
 #define MAX96717_GPIO_OUT BIT(4)

@@ -34,7 +34,7 @@
 						reg = <1>;
 						deserializer_csi_out: endpoint {
 							data-lanes = <1 2 3 4>;
-							link-frequencies = /bits/ 64 <100000000>;
+							link-frequencies = /bits/ 64 <150000000>;
 							remote-endpoint = <&csi_ep>;
 						};
 					};

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Definitions for IMX219 camera module over v-link
+// Definitions for IMX219 camera module over v-link utilizing 4 mipi-csi lanes on both deserializer and serializer.
 /dts-v1/;
 /plugin/;
 
@@ -48,7 +48,6 @@
 					port@0 {
 						reg = <0>;
 						deserialiezr_gmsl_in: endpoint {
-							data-lanes = <1 2>;
 							remote-endpoint = <&serializer_gmsl_out>;
 						};
 					};
@@ -56,8 +55,8 @@
 					port@1 {
 						reg = <1>;
 						deserializer_csi_out: endpoint {
-							data-lanes = <1 2>;
-							link-frequencies = /bits/ 64 <500000000>;
+							data-lanes = <1 2 3 4>;
+							link-frequencies = /bits/ 64 <400000000>;
 							remote-endpoint = <&csi_ep>;
 						};
 					};
@@ -75,7 +74,7 @@
 						#gpio-cells = <2>;
 						#clock-cells = <0>;
 						no-metadata;
-						
+
 						ports {
 							#address-cells = <1>;
 							#size-cells = <0>;
@@ -83,7 +82,7 @@
 							port@0 {
 								reg = <0>;
 								serializer_csi_in: endpoint {
-									data-lanes = <1 2>;
+									data-lanes = <1 2 3 4>;
 									remote-endpoint = <&cam_endpoint>;
 								};
 							};
@@ -121,10 +120,10 @@
 								port {
 									cam_endpoint: endpoint {
 										clock-lanes = <0>;
-										data-lanes = <1 2>;
+										data-lanes = <1 2 3 4>;
 										clock-noncontinuous;
 										link-frequencies =
-										/bits/ 64 <456000000>;
+										/bits/ 64 <364000000>;
 									};
 								};
 							};
@@ -152,7 +151,7 @@
 				csi_ep: endpoint {
 					remote-endpoint = <&deserializer_csi_out>;
 					clock-lanes = <0>;
-					data-lanes = <1 2>;
+					data-lanes = <1 2 3 4>;
 					clock-noncontinuous;
 				};
 			};

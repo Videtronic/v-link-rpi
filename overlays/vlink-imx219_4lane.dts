@@ -39,6 +39,8 @@
 				status = "okay";
 				compatible = "videtronic,v-link-deser";
 				reg = <0x4C>;
+				no-metadata;
+
 				ports {
 					#address-cells = <1>;
 					#size-cells = <0>;
@@ -71,6 +73,8 @@
 						gpio-controller;
 						#gpio-cells = <2>;
 						#clock-cells = <0>;
+						no-metadata;
+
 						ports {
 							#address-cells = <1>;
 							#size-cells = <0>;

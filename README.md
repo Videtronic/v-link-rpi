@@ -1,4 +1,4 @@
-# With libcamera v0.5.1 (and later), rpicam-* applications may fail to register cameras when using GMSL2 devices. Temporary workaround is to downgrade libcamera version to 0.5.
+# With libcamera v0.5.1 (and later), rpicam-* applications may fail to register cameras when using GMSL2 devices. Temporary workaround is to downgrade libcamera version to 0.5.0
 # Videtronic V-Link Drivers
 
 Welcome to the official Videtronic repository for the **v-link** drivers!  

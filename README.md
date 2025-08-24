@@ -101,7 +101,7 @@ Available overlays include (but are not limited to):
    sudo cp overlays/vlink-*.dtbo /boot/firmware/overlays/
    ```
 
-   ### Overlays with suffix *_4lane are compatible with Raspberry Pi 5 only. These overlays configure deserializer to utilize 4 mipi-csi lanes for better resource utilization.
+   ### Overlays with suffix *_4lane are compatible with Raspberry Pi 5 only.
 2. Add the overlay to your `config.txt`:
    ```bash
    sudo nano /boot/firmware/config.txt

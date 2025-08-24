@@ -1,6 +1,3 @@
-# With libcamera v0.5.1 (and later), rpicam-* applications may fail to register cameras when using GMSL2 devices. Temporary workaround is to downgrade libcamera version to 0.5.0
-# Videtronic V-Link Drivers
-
 Welcome to the official Videtronic repository for the **v-link** drivers!  
 
 The **v-link** product line integrates advanced serializer and deserializer technology featuring the **MAX96717** and **MAX96714** to deliver seamless and high-performance video data transmission over distances of up to 15 meters, thanks to the extended range capabilities of **GMSL2**.

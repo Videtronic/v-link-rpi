@@ -35,109 +35,57 @@
 			#size-cells = <0>;
 			status = "okay";
 			
-			deserializer: deserializer@4C {
+			deserializer: vlink-deser@4C {
 				status = "okay";
 				compatible = "videtronic,v-link-deser";
 				reg = <0x4C>;
-				no-metadata;
-
-				ports {
-					#address-cells = <1>;
-					#size-cells = <0>;
-					
-					port@0 {
-						reg = <0>;
-						deserialiezr_gmsl_in: endpoint {
-							data-lanes = <1 2>;
-							remote-endpoint = <&serializer_gmsl_out>;
-						};
-					};
-					
-					port@1 {
-						reg = <1>;
-						deserializer_csi_out: endpoint {
-							data-lanes = <1 2>;
-							link-frequencies = /bits/ 64 <500000000>;
-							remote-endpoint = <&csi_ep>;
-						};
-					};
-				};
+				data-lanes = <1 2>;
+				link-frequency = /bits/ 64 <500000000>;
+			};
 				
-				i2c-gate {
-					#address-cells = <1>;
-					#size-cells = <0>;
-					status = "okay";
-					serializer: serializer@42 {
-						status = "okay";
-						compatible = "videtronic,v-link-ser";
-						reg = <0x42>;
-						gpio-controller;
-						#gpio-cells = <2>;
-						#clock-cells = <0>;
-						no-metadata;
-						
-						ports {
-							#address-cells = <1>;
-							#size-cells = <0>;
+			serializer: vlink-ser@42 {
+				status = "okay";
+				compatible = "videtronic,v-link-ser";
+				reg = <0x42>;
+				gpio-controller;
+				#gpio-cells = <2>;
+				#clock-cells = <0>;
+				data-lanes = <1 2>;
+			};
 							
-							port@0 {
-								reg = <0>;
-								serializer_csi_in: endpoint {
-									data-lanes = <1 2>;
-									remote-endpoint = <&cam_endpoint>;
-								};
-							};
-							
-							port@1 {
-								reg = <1>;
-								serializer_gmsl_out: endpoint {
-									remote-endpoint = <&deserialiezr_gmsl_in>;
-								};
-							};
-						};
-						
-						i2c-gate {
-							#address-cells = <1>;
-							#size-cells = <0>;
-							status = "okay";
-							
-							cam_node: imx219@10 {
-								compatible = "sony,imx219";
-								reg = <0x10>;
-								status = "okay";
-								
-								clocks = <&cam1_clk>;
-								clock-names = "xclk";
-								
-								VANA-supply = <&cam1_reg>;	/* 2.8v */
-								VDIG-supply = <&cam_dummy_reg>;	/* 1.8v */
-								VDDL-supply = <&cam_dummy_reg>;	/* 1.2v */
-								
-								rotation = <180>;
-								orientation = <2>;
-								
-								reset-gpios = <&serializer 0 1>;
-								
-								port {
-									cam_endpoint: endpoint {
-										clock-lanes = <0>;
-										data-lanes = <1 2>;
-										clock-noncontinuous;
-										link-frequencies =
-										/bits/ 64 <456000000>;
-									};
-								};
-							};
-							
-							vcm: ad5398@c {
-								compatible = "adi,ad5398";
-								reg = <0x0c>;
-								status = "disabled";
-								VANA-supply = <&cam1_reg>;
-							};
-						};
+			cam_node: imx219@10 {
+				compatible = "sony,imx219";
+				reg = <0x10>;
+				status = "okay";
+				
+				clocks = <&cam1_clk>;
+				clock-names = "xclk";
+				
+				VANA-supply = <&cam1_reg>;	/* 2.8v */
+				VDIG-supply = <&cam_dummy_reg>;	/* 1.8v */
+				VDDL-supply = <&cam_dummy_reg>;	/* 1.2v */
+				
+				rotation = <180>;
+				orientation = <2>;
+				
+				reset-gpios = <&serializer 0 1>;
+				
+				port {
+					cam_endpoint: endpoint {
+						clock-lanes = <0>;
+						data-lanes = <1 2>;
+						clock-noncontinuous;
+						link-frequencies =
+						/bits/ 64 <456000000>;
 					};
 				};
+			};
+			
+			vcm: ad5398@c {
+				compatible = "adi,ad5398";
+				reg = <0x0c>;
+				status = "disabled";
+				VANA-supply = <&cam1_reg>;
 			};
 		};
 	};
@@ -150,7 +98,7 @@
 			
 			port {
 				csi_ep: endpoint {
-					remote-endpoint = <&deserializer_csi_out>;
+					remote-endpoint = <&cam_endpoint>;
 					clock-lanes = <0>;
 					data-lanes = <1 2>;
 					clock-noncontinuous;
@@ -179,5 +127,5 @@
 };
 
 &cam_endpoint {
-	remote-endpoint = <&serializer_csi_in>;
+	remote-endpoint = <&csi_ep>;
 };

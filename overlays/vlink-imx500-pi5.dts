@@ -34,119 +34,71 @@
 			#size-cells = <0>;
 			status = "okay";
 			
-			deserializer: deserializer@4C {
+			deserializer: vlink-deser@4C {
 				status = "okay";
 				compatible = "videtronic,v-link-deser";
 				reg = <0x4C>;
-				ports {
-					#address-cells = <1>;
-					#size-cells = <0>;
-					
-					port@0 {
-						reg = <0>;
-						deserialiezr_gmsl_in: endpoint {
-							remote-endpoint = <&serializer_gmsl_out>;
-						};
-					};
-					
-					port@1 {
-						reg = <1>;
-						deserializer_csi_out: endpoint {
-							data-lanes = <1 2>;
-							link-frequencies = /bits/ 64 <500000000>;
-							remote-endpoint = <&csi_ep>;
-						};
-					};
-				};
+				data-lanes = <1 2>;
+				link-frequency = /bits/ 64 <500000000>;
+			};
 				
-				i2c-gate {
+			serializer: vlink-ser@42 {
+				status = "okay";
+				compatible = "videtronic,v-link-ser";
+				reg = <0x42>;
+				gpio-controller;
+				#gpio-cells = <2>;
+				#clock-cells = <0>;
+				data-lanes = <1 2>;
+			};
+		
+			spi_bridge: spi@40 {
+				reg = <0x40>;
+				compatible = "raspberrypi,rp2040-gpio-bridge";
+				status = "okay";
+				#address-cells = <1>;
+				#size-cells = <0>;
+				
+				power-supply = <&bridge_en>;
+				
+				#gpio-cells = <2>;
+				gpio-controller;
+				
+				spi_bridgedev0: spidev@0{
+					compatible = "spidev";
+					reg = <0>;	/* CE0 */
 					#address-cells = <1>;
 					#size-cells = <0>;
-					status = "okay";
-					serializer: serializer@42 {
-						status = "okay";
-						compatible = "videtronic,v-link-ser";
-						reg = <0x42>;
-						gpio-controller;
-						#gpio-cells = <2>;
-						#clock-cells = <0>;
-						
-						ports {
-							#address-cells = <1>;
-							#size-cells = <0>;
-							
-							port@0 {
-								reg = <0>;
-								serializer_csi_in: endpoint {
-									data-lanes = <1 2>;
-									remote-endpoint = <&cam_endpoint>;
-								};
-							};
-							
-							port@1 {
-								reg = <1>;
-								serializer_gmsl_out: endpoint {
-									remote-endpoint = <&deserialiezr_gmsl_in>;
-								};
-							};
-						};
-						
-						i2c-gate {
-							#address-cells = <1>;
-							#size-cells = <0>;
-							status = "okay";
-							
-							spi_bridge: spi@40 {
-								reg = <0x40>;
-								compatible = "raspberrypi,rp2040-gpio-bridge";
-								status = "okay";
-								#address-cells = <1>;
-								#size-cells = <0>;
-								
-								power-supply = <&bridge_en>;
-								
-								#gpio-cells = <2>;
-								gpio-controller;
-								
-								spi_bridgedev0: spidev@0{
-									compatible = "spidev";
-									reg = <0>;	/* CE0 */
-									#address-cells = <1>;
-									#size-cells = <0>;
-									spi-max-frequency = <35000000>;
-								};
-							};
-							
-							cam_node: imx500@1a {
-								reg = <0x1a>;
-								compatible = "sony,imx500";
-								status = "okay";
-								
-								clocks = <&clk_aicam_gated>;
-								clock-names = "inck";
-								
-								vana-supply = <&cam1_reg>;	/* 2.7v */
-								vdig-supply = <&cam_dummy_reg>;	/* 0.84v */
-								vif-supply = <&cam_dummy_reg>;	/* 1.8v */
-								
-								rotation = <0>;
-								orientation = <2>;
-								
-								led-gpios = <&spi_bridge 19 0>;
-								reset-gpios = <&spi_bridge 20 0>;
-								spi = <&spi_bridgedev0>;
-								
-								port {
-									cam_endpoint: endpoint {
-										clock-lanes = <0>;
-										data-lanes = <1 2>;
-										clock-noncontinuous;
-										link-frequencies =
-										/bits/ 64 <444000000>;
-									};
-								};
-							};
-						};
+					spi-max-frequency = <35000000>;
+				};
+			};
+			
+			cam_node: imx500@1a {
+				reg = <0x1a>;
+				compatible = "sony,imx500";
+				status = "okay";
+				
+				clocks = <&clk_aicam_gated>;
+				clock-names = "inck";
+				
+				vana-supply = <&cam1_reg>;	/* 2.7v */
+				vdig-supply = <&cam_dummy_reg>;	/* 0.84v */
+				vif-supply = <&cam_dummy_reg>;	/* 1.8v */
+				
+				rotation = <0>;
+				orientation = <2>;
+				
+				led-gpios = <&spi_bridge 19 0>;
+				reset-gpios = <&spi_bridge 20 0>;
+				spi = <&spi_bridgedev0>;
+				
+				port {
+					cam_endpoint: endpoint {
+						clock-lanes = <0>;
+						data-lanes = <1 2>;
+						clock-noncontinuous;
+						link-frequencies =
+						/bits/ 64 <444000000>;
 					};
 				};
 			};
@@ -161,7 +113,7 @@
 			
 			port {
 				csi_ep: endpoint {
-					remote-endpoint = <&deserializer_csi_out>;
+					remote-endpoint = <&cam_endpoint>;
 					clock-lanes = <0>;
 					data-lanes = <1 2>;
 					clock-noncontinuous;
@@ -244,5 +196,5 @@
 };
 
 &cam_endpoint {
-	remote-endpoint = <&serializer_csi_in>;
+	remote-endpoint = <&csi_ep>;
 };

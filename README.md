@@ -1,5 +1,4 @@
-# With libcamera v0.5.1 (and later), rpicam-* applications may fail to register cameras when using GMSL2 devices. Temporary workaround is to downgrade libcamera version to 0.5.
-# Videtronic V-Link Drivers
+# This version of drivers is compatible with libcamera up to 0.5.0. For newer versions please update to newer Raspberry Pi OS system.
 
 Welcome to the official Videtronic repository for the **v-link** drivers!  
 

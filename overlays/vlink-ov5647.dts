@@ -5,7 +5,20 @@
 
 /{
 	compatible = "brcm,bcm2835";
-	
+
+	fragment@6 {
+		target = <&soc>;
+		__overlay__ {
+			ser_cam_reg: ser_cam_reg {
+				compatible = "regulator-fixed";
+				regulator-name = "ser-cam-reg";
+				enable-active-high;
+				gpio = <&serializer 0 0>; 
+				startup-delay = <100000>; /* 100 ms in microseconds */
+			};
+		};
+	};
+
 	i2c_frag: fragment@0 {
 		target = <&i2c_csi_dsi>;
 		__overlay__ {
@@ -27,7 +40,6 @@
 				reg = <0x42>;
 				gpio-controller;
 				#gpio-cells = <2>;
-				#clock-cells = <0>;
 				data-lanes = <1 2>;
 			};
 
@@ -38,14 +50,12 @@
 				
 				clocks = <&cam1_clk>;
 				
-				avdd-supply = <&cam1_reg>;
+				avdd-supply = <&ser_cam_reg>;
 				dovdd-supply = <&cam_dummy_reg>;
 				dvdd-supply = <&cam_dummy_reg>;
 				
 				rotation = <0>;
 				orientation = <2>;
-				
-				pwdn-gpios = <&serializer 0 0>;
 				
 				port {
 					cam_endpoint: endpoint {

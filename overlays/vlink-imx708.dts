@@ -45,19 +45,6 @@
 		};
 	};
 
-	fragment@5 {
-		target = <&soc>;
-		__overlay__ {
-			ser_cam_reg: ser_cam_reg {
-				compatible = "regulator-fixed";
-				regulator-name = "ser-cam-reg";
-				enable-active-high;
-				gpio = <&serializer 0 0>; 
-				startup-delay = <100000>; /* 100 ms in microseconds */
-			};
-		};
-	};
-
 	i2c_frag: fragment@100 {
 		target = <&i2c_csi_dsi>;
 		__overlay__ {
@@ -91,10 +78,12 @@
 				clocks = <&cam1_clk>;
 				clock-names = "inclk";
 				
-				vana1-supply = <&ser_cam_reg>;	/* 2.8v */
+				vana1-supply = <&cam_dummy_reg>;	/* 2.8v */
 				vana2-supply = <&cam_dummy_reg>;/* 1.8v */
 				vdig-supply = <&cam_dummy_reg>;	/* 1.1v */
 				vddl-supply = <&cam_dummy_reg>;	/* 1.8v */
+				
+				reset-gpios = <&serializer 0 0>;
 				
 				rotation = <180>;
 				orientation = <2>;

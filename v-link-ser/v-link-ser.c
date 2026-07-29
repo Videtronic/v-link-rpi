@@ -3,31 +3,25 @@
  * Videtronic v-link serializer driver
  *
  * Copyright (C) 2024 Videtronic.
- * 
+ *
  * Based on MAX96717 driver by Collabora Ltd.
  * Copyright (C) 2024 Collabora Ltd.
  */
 
+#include <linux/clk.h>
 #include <linux/delay.h>
-#include <linux/bitfield.h>
-#include <linux/device.h>
 #include <linux/fwnode.h>
-#include <linux/of_device.h>
-#include <linux/gpio/consumer.h>
 #include <linux/gpio/driver.h>
 #include <linux/i2c.h>
-#include <linux/i2c-mux.h>
 #include <linux/module.h>
-#include <linux/mutex.h>
+#include <linux/of_graph.h>
 #include <linux/regmap.h>
+#include <linux/slab.h>
 
 #include <media/v4l2-cci.h>
 #include <media/v4l2-ctrls.h>
 #include <media/v4l2-fwnode.h>
 #include <media/v4l2-subdev.h>
-
-//#undef dev_dbg
-//#define dev_dbg dev_info
 
 #define MAX96717_NUM_GPIO 1
 #define MAX96717_GPIO_REG_A(gpio) CCI_REG8(0x2be + (gpio)*3)
@@ -66,7 +60,6 @@ struct v_link_ser_priv {
 static int v_link_ser_enable_sources(struct v_link_ser_priv *priv)
 {
 	struct device *dev = &priv->client->dev;
-
 	int ret;
 
 	ret = cci_update_bits(priv->regmap, MAX96717_FRONTOP0,
@@ -112,17 +105,18 @@ static int v_link_ser_gpiochip_get(struct gpio_chip *gpiochip,
 		return !!(val & MAX96717_GPIO_OUT);
 }
 
-static void v_link_ser_gpiochip_set(struct gpio_chip *gpiochip,
-				    unsigned int offset, int value)
+static int v_link_ser_gpiochip_set(struct gpio_chip *gpiochip,
+				   unsigned int offset, int value)
 {
 	struct v_link_ser_priv *priv = gpiochip_get_data(gpiochip);
 
-	cci_update_bits(priv->regmap, MAX96717_GPIO_REG_A(offset),
-			MAX96717_GPIO_OUT, MAX96717_GPIO_OUT, NULL);
+	return cci_update_bits(priv->regmap, MAX96717_GPIO_REG_A(offset),
+			       MAX96717_GPIO_OUT,
+			       value ? MAX96717_GPIO_OUT : 0, NULL);
 }
 
 static int v_link_ser_gpio_get_direction(struct gpio_chip *gpiochip,
-					 unsigned int offset)
+					  unsigned int offset)
 {
 	struct v_link_ser_priv *priv = gpiochip_get_data(gpiochip);
 	u64 val;
@@ -163,7 +157,7 @@ static int v_link_ser_gpiochip_probe(struct v_link_ser_priv *priv)
 
 	gc->label = dev_name(dev);
 	gc->parent = dev;
-	gc->owner = THIS_MODULE;
+	gc->fwnode = dev_fwnode(dev);
 	gc->ngpio =
 		MAX96717_NUM_GPIO; /* We only use camera reset so 1 is enough */
 	gc->base = -1;
@@ -222,9 +216,9 @@ static int v_link_ser_setup(struct v_link_ser_priv *priv)
 	}
 
 	/*
-		* Unused lanes need to be mapped as well to not have
-		* the same lanes mapped twice.
-		*/
+	 * Unused lanes need to be mapped as well to not have
+	 * the same lanes mapped twice.
+	 */
 	for (; lane < MAX96717_CSI_NLANES; lane++) {
 		unsigned int idx =
 			find_first_zero_bit(&lanes_used, MAX96717_CSI_NLANES);
@@ -263,7 +257,7 @@ static int v_link_ser_parse_dt(struct v_link_ser_priv *priv)
 	}
 
 	ret = of_property_read_u32_array(dev->of_node, "data-lanes",
-					priv->data_lanes, priv->nlanes);
+					 priv->data_lanes, priv->nlanes);
 	if (ret) {
 		dev_err_probe(dev, ret, "Unable to parse data-lanes\n");
 		return ret;
@@ -310,7 +304,7 @@ static int v_link_ser_probe(struct i2c_client *client)
 	ret = v_link_ser_setup(priv);
 	if (ret) {
 		dev_err(&client->dev, "Unable to setup serializer");
-		return ret;;
+		return ret;
 	}
 
 	return v_link_ser_enable_sources(priv);
@@ -320,6 +314,7 @@ static void v_link_ser_remove(struct i2c_client *client)
 {
 	struct v_link_ser_priv *priv = i2c_get_clientdata(client);
 
+	v_link_ser_disable_sources(priv);
 }
 
 static const struct of_device_id v_link_ser_dt_ids[] = {
@@ -329,13 +324,13 @@ static const struct of_device_id v_link_ser_dt_ids[] = {
 MODULE_DEVICE_TABLE(of, v_link_ser_dt_ids);
 
 static struct i2c_driver v_link_ser_i2c_driver = {
-	 .driver	= {
-		 .name		= "v-link-ser",
-		 .of_match_table	= v_link_ser_dt_ids,
-	 },
-	 .probe		= v_link_ser_probe,
-	 .remove		= v_link_ser_remove,
- };
+	.driver = {
+		.name = "v-link-ser",
+		.of_match_table = v_link_ser_dt_ids,
+	},
+	.probe = v_link_ser_probe,
+	.remove = v_link_ser_remove,
+};
 
 module_i2c_driver(v_link_ser_i2c_driver);
 
